@@ -1,0 +1,193 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#f8f8f5">
+  <title>Owner dashboard — Northstar</title>
+  <style>
+    :root {
+      color-scheme: light;
+      --ink: #19241f;
+      --muted: #727a73;
+      --paper: #f5f6f2;
+      --surface: #fff;
+      --line: #e5e8e1;
+      --green: #286b4b;
+      --green-dark: #194a35;
+      --mint: #e6f0e8;
+      --danger: #a43e3e;
+      font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    }
+
+    * { box-sizing: border-box; }
+    body { margin: 0; background: var(--paper); color: var(--ink); }
+    a { color: inherit; text-decoration: none; }
+    button, input, textarea { font: inherit; }
+    button, a { -webkit-tap-highlight-color: transparent; }
+    .wrap { width: min(1100px, calc(100% - 40px)); margin-inline: auto; }
+    .header { position: sticky; z-index: 5; top: 0; border-bottom: 1px solid var(--line); background: rgba(255,255,255,.94); backdrop-filter: blur(12px); }
+    .nav { min-height: 68px; display: flex; align-items: center; justify-content: space-between; gap: 18px; }
+    .brand { display: flex; align-items: center; gap: 9px; font-size: 16px; font-weight: 750; letter-spacing: -.05em; }
+    .brand-mark { width: 28px; height: 28px; display: grid; place-items: center; border-radius: 9px; background: var(--green-dark); color: white; }
+    .nav-actions { display: flex; align-items: center; gap: 17px; color: var(--muted); font-size: 12px; }
+    .main { padding-block: 38px 70px; }
+    .page-heading { display: flex; align-items: flex-end; justify-content: space-between; gap: 20px; margin-bottom: 25px; }
+    .eyebrow { margin: 0 0 8px; color: var(--green); font-size: 10px; font-weight: 750; letter-spacing: .13em; text-transform: uppercase; }
+    h1 { margin: 0; font-family: Georgia, "Times New Roman", serif; font-size: clamp(31px, 5vw, 43px); font-weight: 500; letter-spacing: -.06em; }
+    h2 { margin: 0 0 6px; font-size: 15px; letter-spacing: -.03em; }
+    h3 { margin: 0; font-size: 12px; }
+    .muted { color: var(--muted); }
+    .button { min-height: 39px; display: inline-flex; align-items: center; justify-content: center; gap: 7px; padding: 0 14px; border: 1px solid transparent; border-radius: 6px; background: var(--green-dark); color: white; cursor: pointer; font-size: 11px; font-weight: 650; }
+    .button:hover { background: var(--green); }
+    .button-secondary { border-color: var(--line); background: white; color: var(--ink); }
+    .button-secondary:hover { background: #f2f4ef; color: var(--ink); }
+    .button-danger { border-color: #efd4d4; background: white; color: var(--danger); }
+    .button-danger:hover { background: #fff5f5; color: var(--danger); }
+    .button:disabled { cursor: wait; opacity: .6; }
+    .notice { display: none; margin: 0 0 18px; padding: 11px 14px; border: 1px solid #ead8b2; border-radius: 7px; background: #fff9e9; color: #755a21; font-size: 12px; line-height: 1.5; }
+    .notice[data-kind="error"] { border-color: #edcccc; background: #fff1f1; color: #8b3232; }
+    .notice[data-kind="success"] { border-color: #cde1cf; background: #eff8ef; color: #275a38; }
+    .notice:not(:empty) { display: block; }
+    .stats { display: grid; grid-template-columns: repeat(3, 1fr); gap: 13px; margin-bottom: 17px; }
+    .stat, .panel { border: 1px solid var(--line); border-radius: 9px; background: var(--surface); }
+    .stat { padding: 17px; }
+    .stat-label { display: block; margin-bottom: 9px; color: var(--muted); font-size: 10px; }
+    .stat-value { font-size: 25px; font-weight: 700; letter-spacing: -.06em; }
+    .panel { margin-top: 16px; padding: 19px; }
+    .panel-heading { display: flex; align-items: flex-start; justify-content: space-between; gap: 15px; margin-bottom: 15px; }
+    .panel-heading p { margin: 0; color: var(--muted); font-size: 10px; line-height: 1.6; }
+    .panel-heading .button { flex-shrink: 0; }
+    .plans { display: grid; grid-template-columns: repeat(2, 1fr); gap: 13px; }
+    .plan { padding: 15px; border: 1px solid var(--line); border-radius: 7px; }
+    .plan-top { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 6px; }
+    .plan-status { color: var(--muted); font-size: 9px; }
+    .plan-status.ready { color: var(--green); }
+    .plan p { margin: 0 0 12px; color: var(--muted); font-size: 10px; }
+    .plan-form { display: grid; grid-template-columns: 1fr 1fr; gap: 9px; }
+    .plan-form label, .settings-form label, .login-form label { display: grid; gap: 5px; color: #626b63; font-size: 10px; font-weight: 600; }
+    .plan-form label:nth-child(2), .plan-form label:nth-child(3) { grid-column: span 2; }
+    input, textarea { width: 100%; min-height: 37px; padding: 9px 10px; border: 1px solid #dfe3dc; border-radius: 5px; background: #fff; color: var(--ink); font-size: 12px; }
+    textarea { min-height: 74px; resize: vertical; line-height: 1.55; }
+    input:focus, textarea:focus { outline: 2px solid #9bbd8a; outline-offset: 1px; }
+    .plan-form .button { grid-column: span 2; }
+    .settings-form { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+    .settings-form label:nth-child(3), .settings-form label:nth-child(4), .settings-form .button { grid-column: span 2; }
+    .table-wrap { overflow-x: auto; }
+    table { width: 100%; border-collapse: collapse; text-align: left; white-space: nowrap; }
+    th { padding: 9px 10px; border-bottom: 1px solid var(--line); color: #838b83; font-size: 9px; font-weight: 650; }
+    td { padding: 11px 10px; border-bottom: 1px solid #eff1ed; color: #445047; font-size: 10px; }
+    td .muted { font-size: 9px; }
+    .empty { padding: 22px 10px; color: var(--muted); text-align: center; font-size: 11px; }
+    .pill { display: inline-block; padding: 5px 7px; border-radius: 15px; background: #edf3ed; color: #376347; font-size: 9px; }
+    .pill.pending { background: #f4f0e3; color: #78672d; }
+    .login-wrap { width: min(420px, calc(100% - 36px)); margin: 10vh auto; }
+    .login-card { padding: 28px; border: 1px solid var(--line); border-radius: 10px; background: white; box-shadow: 0 18px 50px rgba(26,43,32,.07); }
+    .login-card h1 { margin-bottom: 7px; font-size: 34px; }
+    .login-card > p { margin: 0 0 20px; color: var(--muted); font-size: 12px; line-height: 1.6; }
+    .login-form { display: grid; gap: 13px; }
+    .login-form .button { margin-top: 3px; }
+    .back-link { display: inline-block; margin-top: 17px; color: var(--muted); font-size: 11px; }
+    [hidden] { display: none !important; }
+
+    @media (max-width: 700px) {
+      .stats { grid-template-columns: 1fr; gap: 8px; }
+      .stat { padding: 13px 15px; }
+      .stat-label { margin-bottom: 5px; }
+      .stat-value { font-size: 20px; }
+      .page-heading { align-items: flex-start; flex-direction: column; }
+      .plans, .settings-form { grid-template-columns: 1fr; }
+      .settings-form label:nth-child(3), .settings-form label:nth-child(4), .settings-form .button { grid-column: auto; }
+      .nav-actions { gap: 10px; }
+      .nav-actions .button { min-height: 34px; padding-inline: 9px; }
+      .panel { padding: 14px; }
+      .panel-heading { align-items: flex-start; flex-direction: column; }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      *, *::before, *::after { scroll-behavior: auto !important; transition-duration: .01ms !important; }
+    }
+  </style>
+  <script defer src="/admin.js"></script>
+</head>
+<body>
+  <section class="login-wrap" id="login-view" aria-labelledby="login-title">
+    <div class="login-card">
+      <a class="brand" href="/"><span class="brand-mark" aria-hidden="true">✳</span> northstar</a>
+      <p class="eyebrow" style="margin-top: 28px;">Owner access</p>
+      <h1 id="login-title">Welcome back.</h1>
+      <p>Sign in with the owner account configured on your server. Admin access is private to your account.</p>
+      <div class="notice" id="login-notice" role="status" aria-live="polite"></div>
+      <form class="login-form" id="login-form">
+        <label>Email address
+          <input name="email" type="email" autocomplete="username" required maxlength="254">
+        </label>
+        <label>Password
+          <input name="password" type="password" autocomplete="current-password" required maxlength="1024">
+        </label>
+        <button class="button" type="submit">Sign in securely</button>
+      </form>
+      <a class="back-link" href="/">← Back to the website</a>
+    </div>
+  </section>
+
+  <div id="dashboard-view" hidden>
+    <header class="header">
+      <nav class="nav wrap" aria-label="Owner navigation">
+        <a class="brand" href="/"><span class="brand-mark" aria-hidden="true">✳</span> northstar <span class="muted" style="font-size: 10px; font-weight: 500; letter-spacing: 0;">/ owner</span></a>
+        <div class="nav-actions"><span id="owner-email"></span><a href="/" target="_blank" rel="noreferrer">View site ↗</a><button class="button button-secondary" id="logout-button" type="button">Sign out</button></div>
+      </nav>
+    </header>
+    <main class="main wrap">
+      <div class="page-heading">
+        <div><p class="eyebrow">Private owner dashboard</p><h1>Your business, at a glance.</h1></div>
+        <span class="muted" id="paypal-mode"></span>
+      </div>
+      <div class="notice" id="dashboard-notice" role="status" aria-live="polite"></div>
+
+      <section class="stats" aria-label="Business overview">
+        <article class="stat"><span class="stat-label">Active subscriptions</span><strong class="stat-value" id="active-subscriptions">—</strong></article>
+        <article class="stat"><span class="stat-label">All subscriptions</span><strong class="stat-value" id="total-subscriptions">—</strong></article>
+        <article class="stat"><span class="stat-label">Recorded completed payments (USD)</span><strong class="stat-value" id="total-paid">—</strong></article>
+      </section>
+
+      <section class="panel" aria-labelledby="plans-heading">
+        <div class="panel-heading">
+          <div><h2 id="plans-heading">Subscription plans</h2><p>Plan price changes create a new PayPal plan. Existing subscribers keep their current billing agreement.</p></div>
+          <button class="button" id="paypal-setup-button" type="button">Set up PayPal plans</button>
+        </div>
+        <div class="plans" id="plans-list"></div>
+      </section>
+
+      <section class="panel" aria-labelledby="settings-heading">
+        <div class="panel-heading"><div><h2 id="settings-heading">Website settings</h2><p>Update the visible brand details, homepage introduction, and contact section.</p></div></div>
+        <form class="settings-form" id="settings-form">
+          <label>Brand name<input name="brand_name" required maxlength="100"></label>
+          <label>Contact email<input name="contact_email" type="email" required maxlength="254"></label>
+          <label>Homepage headline<input name="hero_title" required maxlength="200"></label>
+          <label>Homepage introduction<textarea name="hero_copy" required maxlength="500"></textarea></label>
+          <label>Contact section headline<input name="contact_heading" required maxlength="200"></label>
+          <label>Contact section text<textarea name="contact_copy" required maxlength="500"></textarea></label>
+          <button class="button" type="submit">Save website settings</button>
+        </form>
+      </section>
+
+      <section class="panel" aria-labelledby="subscriptions-heading">
+        <div class="panel-heading"><div><h2 id="subscriptions-heading">Subscriptions</h2><p>Subscriber records are updated only from PayPal signature-verified webhooks.</p></div></div>
+        <div class="table-wrap"><table>
+          <thead><tr><th>Subscriber</th><th>Plan</th><th>Status</th><th>Started</th><th>Last payment</th><th>Action</th></tr></thead>
+          <tbody id="subscriptions-table"></tbody>
+        </table></div>
+      </section>
+
+      <section class="panel" aria-labelledby="payments-heading">
+        <div class="panel-heading"><div><h2 id="payments-heading">Payment activity</h2><p>Payment entries are a record of verified PayPal webhook events; balances and payouts remain in your PayPal account.</p></div></div>
+        <div class="table-wrap"><table>
+          <thead><tr><th>Date</th><th>Subscriber</th><th>Payment ID</th><th>Amount</th><th>Status</th></tr></thead>
+          <tbody id="payments-table"></tbody>
+        </table></div>
+      </section>
+    </main>
+  </div>
+</body>
+</html>
